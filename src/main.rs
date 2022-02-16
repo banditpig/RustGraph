@@ -1,7 +1,9 @@
 use crate::graph::{Graph, GraphError};
+use std::collections::HashSet;
 
 mod algorithms;
 mod graph;
+mod utils;
 
 fn main() -> Result<(), GraphError> {
     let mut g: Graph<usize, usize, char> = Graph::new();
@@ -31,5 +33,9 @@ fn main() -> Result<(), GraphError> {
     println!("{:?}", g.connected(&'C', &'A'));
     println!("{:?}", g.connected(&'A', &'C'));
 
+    println!("{:?}", g.dfs(&'H'));
+
+    //g.bfs_path(&'G', &'B');
+    println!("{:?}", g.bfs_path(&'D', &'A'));
     Ok(())
 }

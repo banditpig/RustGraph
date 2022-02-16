@@ -1,7 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::borrow::BorrowMut;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
+use std::ptr::hash;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -14,12 +16,17 @@ pub struct Node<T, ID: Clone + Hash + Eq> {
 pub struct Edge<E, ID: Clone + Hash + Eq> {
     id: ID,
     data: E,
-    l: ID,
-    r: ID,
+    left: ID,
+    right: ID,
 }
 impl<E, ID: Clone + Hash + Eq> Edge<E, ID> {
     pub fn new(id: ID, data: E, l: ID, r: ID) -> Self {
-        Self { id, data, l, r }
+        Self {
+            id,
+            data,
+            left: l,
+            right: r,
+        }
     }
 }
 
@@ -132,12 +139,92 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
         Ok(())
     }
     pub fn connected(&self, first: &ID, second: &ID) -> bool {
-        for Edge { id, data, l, r } in self.edges.values() {
+        for Edge {
+            id,
+            data,
+            left: l,
+            right: r,
+        } in self.edges.values()
+        {
             if l == first && r == second || r == first && l == second {
                 return true;
             }
         }
         false
+    }
+    pub fn bfs_path(&self, s: &ID, e: &ID) -> Result<Vec<ID>, GraphError> {
+        if !self.nodes.contains_key(s) {
+            return Err(GraphError::new("'start' not in nodes."));
+        }
+        if !self.nodes.contains_key(e) {
+            return Err(GraphError::new("'end' not in nodes."));
+        }
+        let prev = self.solve(s);
+        let path = self.reconstruct_path(s, e, prev);
+
+        return path;
+    }
+    fn solve(&self, p: &ID) -> HashMap<ID, ID> {
+        let mut q: VecDeque<ID> = VecDeque::new();
+        let mut visited: HashSet<ID> = HashSet::new();
+        let mut path: HashMap<ID, ID> = HashMap::new();
+
+        q.push_back(*p);
+        visited.insert(*p);
+
+        while !q.is_empty() {
+            //we know its not empty
+            let node = q.pop_front().unwrap();
+            //we know its on the graph
+            let neighbours = self.neighbors(node).unwrap();
+            for nxt in neighbours {
+                if !visited.contains(&nxt) {
+                    q.push_back(nxt);
+                    visited.insert(nxt);
+                    path.insert(nxt, node);
+                }
+            }
+        }
+
+        path
+    }
+    fn reconstruct_path(
+        &self,
+        start: &ID,
+        end: &ID,
+        links: HashMap<ID, ID>,
+    ) -> Result<Vec<ID>, GraphError> {
+        if !links.contains_key(end) {
+            return Err(GraphError::new("End point can't be reqched."));
+        }
+        let mut path: Vec<ID> = Vec::new();
+
+        path.push(*end);
+        let mut next_key = links.get(end).unwrap();
+        loop {
+            path.push(*next_key);
+            if next_key == start {
+                path.reverse();
+                return Ok(path);
+            }
+            next_key = links.get(next_key).unwrap();
+        }
+    }
+    pub fn dfs(&self, node: &ID) -> HashSet<ID> {
+        let mut v: HashSet<ID> = HashSet::new();
+        self.depth_first(node, &mut v);
+        return v;
+    }
+    pub fn depth_first(&self, node: &ID, visited: &mut HashSet<ID>) {
+        if visited.contains(&node) {
+            return;
+        }
+        visited.insert(*node);
+        let neighs = self.neighbors(*node).unwrap();
+
+        for n in neighs {
+            self.depth_first(&n, visited);
+        }
     }
 
     pub fn neighbors(&self, id: ID) -> Result<HashSet<ID>, GraphError> {
@@ -147,7 +234,12 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
             None => Err(GraphError::new("'Supplied node id is not in graph.")),
             Some(node) => {
                 for edge_id in node.edges.iter() {
-                    let Edge { id, data, l, r } = self.edges.get(edge_id).unwrap();
+                    let Edge {
+                        id,
+                        data,
+                        left: l,
+                        right: r,
+                    } = self.edges.get(edge_id).unwrap();
                     neighs.insert(*l);
                     neighs.insert(*r);
                 }
