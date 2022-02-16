@@ -1,5 +1,7 @@
 use crate::graph::{Graph, GraphError};
+use crate::utils::viz_dot;
 use std::collections::HashSet;
+use utils::create_random_graph;
 
 mod algorithms;
 mod graph;
@@ -37,5 +39,8 @@ fn main() -> Result<(), GraphError> {
 
     //g.bfs_path(&'G', &'B');
     println!("{:?}", g.bfs_path(&'D', &'A'));
+    let g2: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 50);
+    println!("{:?}", g2);
+    viz_dot(g, "test.dot");
     Ok(())
 }

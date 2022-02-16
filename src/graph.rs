@@ -3,7 +3,6 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
-use std::ptr::hash;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -14,10 +13,10 @@ pub struct Node<T, ID: Clone + Hash + Eq> {
 }
 #[derive(Debug)]
 pub struct Edge<E, ID: Clone + Hash + Eq> {
-    id: ID,
-    data: E,
-    left: ID,
-    right: ID,
+    pub id: ID,
+    pub data: E,
+    pub left: ID,
+    pub right: ID,
 }
 impl<E, ID: Clone + Hash + Eq> Edge<E, ID> {
     pub fn new(id: ID, data: E, l: ID, r: ID) -> Self {
@@ -41,8 +40,8 @@ impl<T, ID: Clone + Hash + Eq> Node<T, ID> {
 }
 #[derive(Debug)]
 pub struct Graph<T, E, ID: Clone + Hash + Eq> {
-    nodes: HashMap<ID, Node<T, ID>>,
-    edges: HashMap<ID, Edge<E, ID>>,
+    pub nodes: HashMap<ID, Node<T, ID>>,
+    pub edges: HashMap<ID, Edge<E, ID>>,
 }
 
 #[derive(Debug)]
