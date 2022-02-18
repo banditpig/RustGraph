@@ -37,13 +37,16 @@ fn main() -> Result<(), GraphError> {
     // g.bfs_path(&'G', &'B');
 
     //println!("{:?}", g.bfs_path(&'D', &'A'));
-    let g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(100, 150, 1, 2);
+    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(500, 2000, 1, 10);
     println!("{:?}", g1);
     //
-    to_viz_dot(g1, "test.dot");
+    g1.apply_to_nodes(|_| 20);
+    g1.apply_to_edges(|_| 100);
+    to_viz_dot(&g1, "test.dot");
+
     let g2 = from_viz_dot::<i32, i32, i32>("test.dot");
     println!("{:?}", g2);
-    to_viz_dot(g2, "test1.dot");
+    to_viz_dot(&g2, "test1.dot");
 
     //println!("{:?}", g1.bfs_path(&75, &7));
     Ok(())

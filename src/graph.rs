@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -6,9 +7,9 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Node<T, ID: Clone + Hash + Eq> {
-    id: ID,
-    data: T,
-    edges: Vec<ID>,
+    pub id: ID,
+    pub data: T,
+    pub edges: Vec<ID>,
 }
 #[derive(Debug)]
 pub struct Edge<E, ID: Clone + Hash + Eq> {
@@ -82,13 +83,14 @@ impl<ID: fmt::Debug> Display for Route<ID> {
     }
 }
 impl<ID: Eq> Route<ID> {
-    fn start_rc(pos: ID) -> Rc<Self> {
+    fn start(pos: ID) -> Rc<Self> {
         Rc::new(Route {
             position: pos,
             path: None,
             length: 0,
         })
     }
+
     fn contains(&self, id: &ID) -> bool {
         if self.position == *id {
             return true;
@@ -225,7 +227,20 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
             self.depth_first(&n, visited);
         }
     }
-
+    pub fn apply_to_nodes(&mut self, f: fn(&mut T) -> T) {
+        for mut n in self.nodes.values_mut() {
+            let d = n.data.borrow_mut();
+            let d = f(d);
+            n.data = d;
+        }
+    }
+    pub fn apply_to_edges(&mut self, f: fn(&mut E) -> E) {
+        for mut e in self.edges.values_mut() {
+            let d = e.data.borrow_mut();
+            let d = f(d);
+            e.data = d;
+        }
+    }
     pub fn neighbors(&self, id: ID) -> Result<HashSet<ID>, GraphError> {
         let mut neighs: HashSet<ID> = HashSet::new();
 

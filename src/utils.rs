@@ -1,4 +1,4 @@
-use crate::graph::Edge;
+use crate::graph::{Edge, Node};
 use crate::Graph;
 use rand::Rng;
 
@@ -43,9 +43,7 @@ pub fn create_random_graph<T: Default, E: Default, ID: Copy + Clone + Hash + Eq>
 pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq>(
     path: &str,
 ) -> Graph<i32, i32, i32> {
-    //Graph<T, E, ID> {
-    //very basic read of dot file.
-    //only looks for X -- Y;
+    //
     let reader = BufReader::new(File::open(path).expect("Cannot open file"));
     let mut g: Graph<i32, i32, i32> = Graph::new();
 
@@ -69,8 +67,8 @@ pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq
     g
 }
 
-pub fn to_viz_dot<T: Default, E: Debug, ID: Debug + Copy + Clone + Hash + Eq>(
-    g: Graph<T, E, ID>,
+pub fn to_viz_dot<T: Default + Debug, E: Debug, ID: Debug + Copy + Clone + Hash + Eq>(
+    g: &Graph<T, E, ID>,
     path: &str,
 ) {
     let path = Path::new(path);
@@ -79,6 +77,16 @@ pub fn to_viz_dot<T: Default, E: Debug, ID: Debug + Copy + Clone + Hash + Eq>(
     out_data.push_str("graph D {");
     out_data.push('\n');
 
+    for Node {
+        id,
+        data,
+        edges: _edges,
+    } in g.nodes.values()
+    {
+        let l = format!("    {:?}[label=\"{:?} \\nData {:?}\"];\r\n", id, id, data);
+        out_data.push_str(&l);
+    }
+    out_data.push('\n');
     for Edge {
         id,
         data,
