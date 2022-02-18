@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -140,8 +139,8 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
 
     pub fn connected(&self, first: &ID, second: &ID) -> bool {
         for Edge {
-            id,
-            data,
+            id: _,
+            data: _,
             left: l,
             right: r,
         } in self.edges.values()
@@ -235,8 +234,8 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
             Some(node) => {
                 for edge_id in node.edges.iter() {
                     let Edge {
-                        id,
-                        data,
+                        id: _,
+                        data: _,
                         left: l,
                         right: r,
                     } = self.edges.get(edge_id).unwrap();

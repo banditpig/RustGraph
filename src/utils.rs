@@ -1,5 +1,5 @@
 use crate::graph::Edge;
-use crate::{graph, Graph, GraphError};
+use crate::Graph;
 use rand::Rng;
 
 use regex::Regex;
@@ -32,6 +32,7 @@ pub fn create_random_graph<T: Default, E: Default, ID: Copy + Clone + Hash + Eq>
             r = rng.gen_range(0..nodes - 1);
         }
         let w = rng.gen_range(min_weight..max_weight);
+
         if !g.connected(&l, &r) {
             let _ = g.add_edge(ix, l, r, w);
         }
@@ -49,20 +50,19 @@ pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq
     let mut g: Graph<i32, i32, i32> = Graph::new();
 
     for line in reader.lines() {
-        let mut line = line.unwrap();
-        println!("++++>>> {}", line);
-        let re = Regex::new(r"^\s*(\d)+ -- (\d+) \[label=(\d)+, id=(\d)+\];").unwrap();
+        let line = line.unwrap();
+
+        let re = Regex::new(r"^\s*(\d*) -- (\d*) \[label=(\d*), id=(\d*)];").unwrap();
         let matches = re.captures_iter(line.as_str());
         for cap in matches {
-            println!(">>>>>>> {}", line);
-            let left: &i32 = &cap[1].to_string().trim().parse().unwrap();
-            let right: &i32 = &cap[2].to_string().trim().parse().unwrap();
+            let from: &i32 = &cap[1].to_string().trim().parse().unwrap();
+            let to: &i32 = &cap[2].to_string().trim().parse().unwrap();
             let edge_weight: &i32 = &cap[3].to_string().trim().parse().unwrap();
             let edge_id: &i32 = &cap[4].to_string().trim().parse().unwrap();
 
-            g.add_node(*left, 0);
-            g.add_node(*right, 0);
-            g.add_edge(*edge_id, *left, *right, *edge_weight);
+            g.add_node(*from, 0);
+            g.add_node(*to, 0);
+            let _ = g.add_edge(*edge_id, *from, *to, *edge_weight);
         }
     }
 
