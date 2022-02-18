@@ -23,7 +23,7 @@ pub fn create_random_graph<T: Default, E: Default, ID: Copy + Clone + Hash + Eq>
     for x in 0..nodes - 1 {
         g.add_node(x, T::default());
     }
-    let edges = nodes; //rng.gen_range(min_nodes..max_nodes);
+    let edges = 2 * nodes; //rng.gen_range(min_nodes..max_nodes);
     for ix in 0..edges {
         let mut l = rng.gen_range(0..nodes - 1);
         let mut r = rng.gen_range(0..nodes - 1);

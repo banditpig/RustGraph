@@ -216,7 +216,7 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
         self.depth_first(node, &mut v);
         return v;
     }
-    pub fn depth_first(&self, node: &ID, visited: &mut HashSet<ID>) {
+    fn depth_first(&self, node: &ID, visited: &mut HashSet<ID>) {
         if visited.contains(&node) {
             return;
         }
