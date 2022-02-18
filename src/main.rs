@@ -1,7 +1,5 @@
 use crate::graph::{Graph, GraphError};
-use crate::utils::viz_dot;
-use std::collections::HashSet;
-use utils::create_random_graph;
+use crate::utils::{create_random_graph, from_viz_dot, to_viz_dot};
 
 mod algorithms;
 mod graph;
@@ -13,7 +11,6 @@ fn main() -> Result<(), GraphError> {
         g.add_node(x, 0);
     }
     g.add_edge('a', 'H', 'D', 6)?;
-    g.add_edge('z', 'D', 'H', 6)?;
 
     g.add_edge('b', 'D', 'C', 18)?;
     g.add_edge('c', 'C', 'B', 10)?;
@@ -37,10 +34,15 @@ fn main() -> Result<(), GraphError> {
 
     println!("{:?}", g.dfs(&'H'));
 
-    //g.bfs_path(&'G', &'B');
+    g.bfs_path(&'G', &'B');
+
     println!("{:?}", g.bfs_path(&'D', &'A'));
-    let g2: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 50);
-    println!("{:?}", g2);
-    viz_dot(g, "test.dot");
+    let g2: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 20, 1, 2);
+
+    to_viz_dot(g2, "test.dot");
+    let g2 = from_viz_dot::<i32, i32, i32>("test.dot");
+    to_viz_dot(g2, "test1.dot");
+
+    //println!("{:?}", g1.bfs_path(&75, &7));
     Ok(())
 }

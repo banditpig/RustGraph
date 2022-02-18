@@ -109,7 +109,7 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
     }
 
     pub fn add_node(&mut self, id: ID, data: T) {
-        self.nodes.insert(id, Node::new(id, data));
+        self.nodes.entry(id).or_insert_with(|| Node::new(id, data));
     }
     pub fn add_edge(
         &mut self,
@@ -137,6 +137,7 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
 
         Ok(())
     }
+
     pub fn connected(&self, first: &ID, second: &ID) -> bool {
         for Edge {
             id,
