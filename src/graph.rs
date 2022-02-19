@@ -128,7 +128,7 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
         }
 
         let edge = Edge::new(edge_id, edge_data, from, to);
-        self.edges.insert(edge_id.clone(), edge);
+        self.edges.insert(edge_id, edge);
 
         let n = self.nodes.get_mut(&from.clone()).unwrap();
         n.edges.push(edge_id);
@@ -161,9 +161,7 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
             return Err(GraphError::new("'end' not in nodes."));
         }
         let prev = self.solve(s);
-        let path = self.reconstruct_path(s, e, prev);
-
-        return path;
+        self.reconstruct_path(s, e, prev)
     }
     fn solve(&self, p: &ID) -> HashMap<ID, ID> {
         let mut q: VecDeque<ID> = VecDeque::new();
@@ -196,11 +194,10 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
         links: HashMap<ID, ID>,
     ) -> Result<Vec<ID>, GraphError> {
         if !links.contains_key(end) {
-            return Err(GraphError::new("End point can't be reqched."));
+            return Err(GraphError::new("End point can't be reached."));
         }
-        let mut path: Vec<ID> = Vec::new();
+        let mut path: Vec<ID> = vec![*end]; // Vec::new();
 
-        path.push(*end);
         let mut next_key = links.get(end).unwrap();
         loop {
             path.push(*next_key);
@@ -214,10 +211,10 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
     pub fn dfs(&self, node: &ID) -> HashSet<ID> {
         let mut v: HashSet<ID> = HashSet::new();
         self.depth_first(node, &mut v);
-        return v;
+        v
     }
     fn depth_first(&self, node: &ID, visited: &mut HashSet<ID>) {
-        if visited.contains(&node) {
+        if visited.contains(node) {
             return;
         }
         visited.insert(*node);

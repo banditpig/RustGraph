@@ -82,7 +82,7 @@ fn apply_edges() {
         .for_each(|e| assert!(e.data >= 1 && e.data <= 10));
 
     g1.apply_to_edges(|_| 1234);
-    g1.edges.values().for_each(|e| assert!(e.data == 1234));
+    g1.edges.values().for_each(|e| assert_eq!(e.data, 1234));
 }
 
 // to_viz_dot(&g1, "test.dot");
