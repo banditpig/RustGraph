@@ -15,14 +15,16 @@ pub fn create_random_graph<T: Default, E: Default, ID: Copy + Clone + Hash + Eq>
     max_nodes: i32,
     min_weight: i32,
     max_weight: i32,
-) -> Graph<T, i32, i32> {
+    min_node_data: i32,
+    max_node_data: i32,
+) -> Graph<i32, i32, i32> {
     //
-    let mut g: Graph<T, i32, i32> = Graph::new();
+    let mut g: Graph<i32, i32, i32> = Graph::new();
     let mut rng = rand::thread_rng();
 
     let nodes = rng.gen_range(min_nodes..max_nodes);
     for x in 0..nodes - 1 {
-        g.add_node(x, T::default());
+        g.add_node(x, rng.gen_range(min_node_data..max_node_data));
     }
     let edges = 2 * nodes; //rng.gen_range(min_nodes..max_nodes);
     for ix in 0..edges {
@@ -53,25 +55,10 @@ pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq
 
     for line in reader.lines() {
         let line = line.unwrap();
-        if node_re.is_match(line.as_str()) {
-            let node_matches = node_re.captures_iter(line.as_str());
-            for cap in node_matches {
-                let node_id: &i32 = &cap[1].to_string().trim().parse().unwrap();
-                let node_data: &i32 = &cap[2].to_string().trim().parse().unwrap();
-                g.add_node(*node_id, *node_data);
-            }
-        }
+        match_nodes(&mut g, &node_re, &line);
         //
         if edge_re.is_match(line.as_str()) {
-            let matches = edge_re.captures_iter(line.as_str());
-            for cap in matches {
-                let from: &i32 = &cap[1].to_string().trim().parse().unwrap();
-                let to: &i32 = &cap[2].to_string().trim().parse().unwrap();
-                let edge_weight: &i32 = &cap[3].to_string().trim().parse().unwrap();
-                let edge_id: &i32 = &cap[4].to_string().trim().parse().unwrap();
-
-                let _ = g.add_edge(*edge_id, *from, *to, *edge_weight);
-            }
+            match_edges(&mut g, &edge_re, &line);
         }
     }
 
@@ -117,4 +104,26 @@ pub fn to_viz_dot<T: Default + Debug, E: Debug, ID: Debug + Copy + Clone + Hash 
     out_data = out_data.replace("'", "");
     let _ = file.write_all(out_data.as_bytes());
     let _ = file.flush();
+}
+fn match_edges(g: &mut Graph<i32, i32, i32>, edge_re: &Regex, line: &String) {
+    let matches = edge_re.captures_iter(line.as_str());
+    for cap in matches {
+        let from: &i32 = &cap[1].to_string().trim().parse().unwrap();
+        let to: &i32 = &cap[2].to_string().trim().parse().unwrap();
+        let edge_weight: &i32 = &cap[3].to_string().trim().parse().unwrap();
+        let edge_id: &i32 = &cap[4].to_string().trim().parse().unwrap();
+
+        let _ = g.add_edge(*edge_id, *from, *to, *edge_weight);
+    }
+}
+
+fn match_nodes(g: &mut Graph<i32, i32, i32>, node_re: &Regex, line: &String) {
+    if node_re.is_match(line.as_str()) {
+        let node_matches = node_re.captures_iter(line.as_str());
+        for cap in node_matches {
+            let node_id: &i32 = &cap[1].to_string().trim().parse().unwrap();
+            let node_data: &i32 = &cap[2].to_string().trim().parse().unwrap();
+            g.add_node(*node_id, *node_data);
+        }
+    }
 }

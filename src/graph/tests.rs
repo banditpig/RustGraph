@@ -62,7 +62,7 @@ fn bfs_path() {
 
 #[test]
 fn apply_nodes() {
-    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 20, 1, 10);
+    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 20, 1, 10, 0, 1);
 
     g1.nodes.values().for_each(|n| assert_eq!(0, n.data));
 
@@ -76,7 +76,7 @@ fn apply_nodes() {
 }
 #[test]
 fn apply_edges() {
-    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 20, 1, 10);
+    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 20, 1, 10, 0, 1);
     g1.edges
         .values()
         .for_each(|e| assert!(e.data >= 1 && e.data <= 10));
