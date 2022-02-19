@@ -2,6 +2,7 @@ use crate::graph::{Edge, Node};
 use crate::Graph;
 use rand::Rng;
 
+use itertools::Itertools;
 use regex::Regex;
 use std::fmt::Debug;
 use std::fs::File;
@@ -67,7 +68,7 @@ pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq
     g
 }
 
-pub fn to_viz_dot<T: Default + Debug, E: Debug, ID: Debug + Copy + Clone + Hash + Eq>(
+pub fn to_viz_dot<T: Default + Debug, E: Debug, ID: Debug + Copy + Clone + Hash + Eq + Ord>(
     g: &Graph<T, E, ID>,
     path: &str,
 ) {
@@ -76,30 +77,32 @@ pub fn to_viz_dot<T: Default + Debug, E: Debug, ID: Debug + Copy + Clone + Hash 
     let mut out_data = String::new();
     out_data.push_str("graph D {");
     out_data.push('\n');
-
-    for Node {
-        id,
-        data,
-        edges: _edges,
-    } in g.nodes.values()
-    {
+    for node_key in g.nodes.keys().sorted() {
+        let Node {
+            id,
+            data,
+            edges: _edges,
+        } = g.nodes.get(node_key).unwrap();
         let l = format!("    {:?}[label=\"{:?} \\nData {:?}\"];\r\n", id, id, data);
         out_data.push_str(&l);
     }
+
     out_data.push('\n');
-    for Edge {
-        id,
-        data,
-        left: l,
-        right: r,
-    } in g.edges.values()
-    {
+
+    for edge_key in g.edges.keys().sorted() {
+        let Edge {
+            id,
+            data,
+            left,
+            right,
+        } = g.edges.get(edge_key).unwrap();
         let l = format!(
             "    {:?} -- {:?} [label={:?}, id={:?}];\r\n",
-            l, r, data, id
+            left, right, data, id
         );
         out_data.push_str(&l);
     }
+
     out_data.push('}');
     out_data = out_data.replace("'", "");
     let _ = file.write_all(out_data.as_bytes());

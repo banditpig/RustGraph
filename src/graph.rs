@@ -5,13 +5,13 @@ use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use std::rc::Rc;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Node<T, ID: Clone + Hash + Eq> {
     pub id: ID,
     pub data: T,
     pub edges: Vec<ID>,
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Edge<E, ID: Clone + Hash + Eq> {
     pub id: ID,
     pub data: E,

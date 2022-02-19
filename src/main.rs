@@ -37,7 +37,7 @@ fn main() -> Result<(), GraphError> {
     // g.bfs_path(&'G', &'B');
 
     //println!("{:?}", g.bfs_path(&'D', &'A'));
-    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(500, 12000, 1, 10);
+    let mut g1: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(20, 50, 1, 10);
     //println!("{:?}", g1);
     //
     // g1.apply_to_nodes(|_| 20);
