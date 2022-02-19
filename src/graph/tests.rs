@@ -1,6 +1,6 @@
 use crate::graph::Graph;
 use crate::utils::create_random_graph;
-use crate::GraphError;
+
 use rand::Rng;
 
 #[test]

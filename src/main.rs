@@ -1,5 +1,5 @@
-use crate::graph::{Graph, GraphError};
-use crate::utils::{from_viz_dot, to_viz_dot};
+#![allow(dead_code)]
+use crate::graph::Graph;
 
 mod algorithms;
 mod graph;
