@@ -48,20 +48,30 @@ pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq
     let reader = BufReader::new(File::open(path).expect("Cannot open file"));
     let mut g: Graph<i32, i32, i32> = Graph::new();
 
+    let edge_re = Regex::new(r"^\s*(\d*) -- (\d*) \[label=(\d*), id=(\d*)];").unwrap();
+    let node_re = Regex::new(r"^\s*(\d*)\[.*?Data (\d*).*?;").unwrap();
+
     for line in reader.lines() {
         let line = line.unwrap();
+        if node_re.is_match(line.as_str()) {
+            let node_matches = node_re.captures_iter(line.as_str());
+            for cap in node_matches {
+                let node_id: &i32 = &cap[1].to_string().trim().parse().unwrap();
+                let node_data: &i32 = &cap[2].to_string().trim().parse().unwrap();
+                g.add_node(*node_id, *node_data);
+            }
+        }
+        //
+        if edge_re.is_match(line.as_str()) {
+            let matches = edge_re.captures_iter(line.as_str());
+            for cap in matches {
+                let from: &i32 = &cap[1].to_string().trim().parse().unwrap();
+                let to: &i32 = &cap[2].to_string().trim().parse().unwrap();
+                let edge_weight: &i32 = &cap[3].to_string().trim().parse().unwrap();
+                let edge_id: &i32 = &cap[4].to_string().trim().parse().unwrap();
 
-        let re = Regex::new(r"^\s*(\d*) -- (\d*) \[label=(\d*), id=(\d*)];").unwrap();
-        let matches = re.captures_iter(line.as_str());
-        for cap in matches {
-            let from: &i32 = &cap[1].to_string().trim().parse().unwrap();
-            let to: &i32 = &cap[2].to_string().trim().parse().unwrap();
-            let edge_weight: &i32 = &cap[3].to_string().trim().parse().unwrap();
-            let edge_id: &i32 = &cap[4].to_string().trim().parse().unwrap();
-
-            g.add_node(*from, 0);
-            g.add_node(*to, 0);
-            let _ = g.add_edge(*edge_id, *from, *to, *edge_weight);
+                let _ = g.add_edge(*edge_id, *from, *to, *edge_weight);
+            }
         }
     }
 
