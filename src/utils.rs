@@ -56,7 +56,7 @@ pub fn from_viz_dot<T: Default, E: Default, ID: Debug + Copy + Clone + Hash + Eq
     for line in reader.lines() {
         let line = line.unwrap();
         match_nodes(&mut g, &node_re, &line);
-        //
+
         if edge_re.is_match(line.as_str()) {
             match_edges(&mut g, &edge_re, &line);
         }
