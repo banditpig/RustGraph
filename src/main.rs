@@ -2,6 +2,7 @@
 use crate::graph::Graph;
 
 mod algorithms;
+mod geometry;
 mod graph;
 mod utils;
 
