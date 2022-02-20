@@ -262,4 +262,4 @@ impl<T, E, ID: Copy + Clone + Hash + Eq> Graph<T, E, ID> {
 }
 
 #[cfg(test)]
-mod tests;
+mod graphtests;
