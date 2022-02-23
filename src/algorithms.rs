@@ -12,30 +12,12 @@ const SPRING_CONST: Scalar = 1.0;
 const SPRING_LENGTH: Scalar = 5.0;
 const DELTA_T: Scalar = 0.1;
 
-//Fattr(u, v) = Spring(u,v) - any repel force between u and v if v is a neighbour of u
-pub fn repelling_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
-    //applies to node u and ALL other nodes
-    let unit_uv = (*pos_v - *pos_u).as_unit_vector();
-    let euc_dist = pos_u.euclid_distance(pos_v);
-    unit_uv.scalar_mul(REPEL_CONST / euc_dist * euc_dist)
-}
-pub fn spring_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
-    //applies to node u and all its immediate neighbours.
-    let unit_vu = (*pos_v - *pos_u).as_unit_vector();
-    let euc_dist = pos_u.euclid_distance(pos_v);
-    let x = SPRING_CONST * (euc_dist.powf(2.0) / SPRING_LENGTH).ln();
-    unit_vu.scalar_mul(x)
-}
 pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     g: &Graph<T, E, ID>,
 ) -> HashMap<ID, Vect> {
-    let mut positions: HashMap<ID, Vect> = HashMap::new();
-    for node_id in g.nodes.keys() {
-        //setup with initial vect.
-        positions.insert(*node_id, Vect::random(-100.0, 100.0, false));
-    }
-
+    let mut positions = create_initial_positions(g);
     println!("{:?}", positions);
+
     for _i in 1..100 {
         let repel_forces = calculate_repel_forces(g, &mut positions);
         let spring_forces = calculate_spring_forces(g, &mut positions);
@@ -43,6 +25,30 @@ pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
         update_positions(&mut positions, resultant_forces);
     }
     println!("=> {:?}", positions);
+    positions
+}
+fn repelling_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
+    //applies to node u and ALL other nodes
+    //unit v in direction of u -> v   v-u
+    let unit_uv = (*pos_u - *pos_v).as_unit_vector();
+    let euc_dist = pos_u.euclid_distance(pos_v);
+    unit_uv.scalar_mul(REPEL_CONST / euc_dist * euc_dist)
+}
+fn spring_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
+    //applies to node u and all its immediate neighbours.
+    let unit_vu = (*pos_v - *pos_u).as_unit_vector();
+    let euc_dist = pos_u.euclid_distance(pos_v);
+    let x = SPRING_CONST * (euc_dist.powf(2.0) / SPRING_LENGTH).ln();
+    unit_vu.scalar_mul(x)
+}
+fn create_initial_positions<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
+    g: &Graph<T, E, ID>,
+) -> HashMap<ID, Vect> {
+    let mut positions: HashMap<ID, Vect> = HashMap::new();
+    for node_id in g.nodes.keys() {
+        //setup with initial vect.
+        positions.insert(*node_id, Vect::random(-100.0, 100.0, false));
+    }
     positions
 }
 
