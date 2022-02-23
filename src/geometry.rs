@@ -81,14 +81,14 @@ impl Vect {
             z: v3,
         } = rhs;
 
-        let d = (u1 - v1) * (u1 - v1) + (u2 - v2) * (u2 - v2) + (u3 - v3) * (u3 - v3);
+        let d = (u1 - v1).abs().powf(2.0) + (u2 - v2).abs().powf(2.0) + (u3 - v3).abs().powf(2.0);
         d.sqrt()
     }
     pub fn magnitude(&self) -> Scalar {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+        (self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0)).sqrt()
     }
     pub fn as_unit_vector(&self) -> Vect {
-        self.scalar_mul(self.magnitude())
+        self.scalar_mul(1.0 / self.magnitude())
     }
     pub fn scalar_mul(&self, s: Scalar) -> Vect {
         Vect::new(self.x * s, self.y * s, self.z * s)

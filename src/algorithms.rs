@@ -9,72 +9,81 @@ use std::hash::Hash;
 
 const REPEL_CONST: Scalar = 2.0;
 const SPRING_CONST: Scalar = 1.0;
-const SPRING_LENGTH: Scalar = 1.0;
+const SPRING_LENGTH: Scalar = 5.0;
+const DELTA_T: Scalar = 0.1;
 
+//Fattr(u, v) = Spring(u,v) - any repel force between u and v if v is a neighbour of u
 pub fn repel_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
     //applies to node u and ALL other nodes
     let unit_uv = (*pos_v - *pos_u).as_unit_vector();
-    unit_uv.scalar_mul(2.0 / pos_u.euclid_distance(pos_v))
+    let euc_dist = pos_u.euclid_distance(pos_v);
+    unit_uv.scalar_mul(REPEL_CONST / euc_dist * euc_dist)
 }
 pub fn spring_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
     //applies to node u and all its immediate neighbours.
-    let unit_vu = (*pos_u - *pos_v).as_unit_vector();
-    let x = SPRING_CONST * (pos_u.euclid_distance(pos_v) / SPRING_LENGTH).ln();
+    let unit_vu = (*pos_v - *pos_u).as_unit_vector();
+    let euc_dist = pos_u.euclid_distance(pos_v);
+    let x = SPRING_CONST * (euc_dist.powf(2.0) / SPRING_LENGTH).ln();
     unit_vu.scalar_mul(x)
 }
 pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     g: &Graph<T, E, ID>,
 ) -> HashMap<ID, Vect> {
-    let mut p: HashMap<ID, Vect> = HashMap::new();
+    let mut positions: HashMap<ID, Vect> = HashMap::new();
     for node_id in g.nodes.keys() {
         //setup with initial vect.
-        p.insert(*node_id, Vect::random(0.0, 100.0, false));
-    }
-    //all possible pairs of ids
-    let pairs = uv_pairs(g);
-    for (u, v) in pairs.iter() {
-        let pu = p.get(u).unwrap();
-        let pv = p.get(v).unwrap();
-        println!("Repel {:?} {:?} {:?}", u, v, repel_force(pu, pv));
-    }
-    for u in g.nodes.keys() {
-        //attraction between node and its neighbours
-        let neighbours = g.neighbors(*u).unwrap();
-        for neigh_id in neighbours {
-            let pu = p.get(u).unwrap();
-
-            let pv = p.get(&neigh_id).unwrap();
-            let f = spring_force(pu, pv);
-            println!("Attract {:?} {:?} {:?}", u, neigh_id, f);
-        }
+        positions.insert(*node_id, Vect::random(-100.0, 100.0, false));
     }
 
-    p
-}
-
-fn uv_pairs<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
-    g: &Graph<T, E, ID>,
-) -> Vec<(ID, ID)> {
-    let mut id_pairs: Vec<(ID, ID)> = Vec::new();
-    let mut v_ids: Vec<ID> = Vec::new();
-    //doesn't need to be sorted
-    for id in g.nodes.keys().sorted() {
-        v_ids.push(*id)
-    }
-    for (ix, id) in v_ids.iter().enumerate() {
-        for index in ix..v_ids.len() {
-            let a = *id;
-            let b = v_ids[index];
-            if a != b {
-                id_pairs.push((*id, v_ids[index]))
+    println!("{:?}", positions);
+    for _i in 1..100 {
+        let mut repel_forces: HashMap<ID, Vect> = HashMap::new();
+        for node_u in g.nodes.keys().sorted() {
+            let u = positions.get(node_u).unwrap();
+            let mut repel_u = Vect::new(0., 0., 0.);
+            for node_v in g.nodes.keys().sorted() {
+                if node_u != node_v {
+                    let v = positions.get(node_v).unwrap();
+                    repel_u = repel_u + repel_force(u, v);
+                }
             }
+            repel_forces.insert(*node_u, repel_u);
         }
+
+        let mut spring_forces: HashMap<ID, Vect> = HashMap::new();
+        for node_u in g.nodes.keys().sorted() {
+            let mut spring_u = Vect::new(0., 0., 0.);
+            let u = positions.get(node_u).unwrap();
+            for node_v in g.neighbors(*node_u).unwrap() {
+                let v = positions.get(&node_v).unwrap();
+                spring_u = spring_u + spring_force(u, v) - repel_force(u, v)
+            }
+            spring_forces.insert(*node_u, spring_u);
+        }
+
+        let mut resultant_forces: HashMap<ID, Vect> = HashMap::new();
+        for u in repel_forces.keys() {
+            let temp_repel = repel_forces.get(u).unwrap();
+            let temp_spring = spring_forces.get(u).unwrap();
+            resultant_forces.insert(*u, *temp_repel + *temp_spring);
+        }
+
+        //update positions
+        let mut new_positions: HashMap<ID, Vect> = HashMap::new();
+        for pos in positions.keys() {
+            let old_pos = positions.get(pos).unwrap();
+            let f = resultant_forces.get(pos).unwrap().scalar_mul(DELTA_T);
+            let new_pos = *old_pos + f;
+            new_positions.insert(*pos, new_pos);
+        }
+        positions = new_positions;
+        println!("=> {:?}", positions);
     }
-    id_pairs
+    positions
 }
 
 #[test]
 pub fn x() {
-    let g: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 11, 1, 10, 0, 1);
+    let g: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(50, 100, 1, 10, 0, 1);
     println!("{:?}", layout(&g));
 }
