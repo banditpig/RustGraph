@@ -1,6 +1,5 @@
 use crate::geometry::{Scalar, Vect};
 
-use crate::utils::create_random_graph;
 use crate::Graph;
 use itertools::Itertools;
 use std::collections::HashMap;
@@ -47,7 +46,7 @@ fn create_initial_positions<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     let mut positions: HashMap<ID, Vect> = HashMap::new();
     for node_id in g.nodes.keys() {
         //setup with initial vect.
-        positions.insert(*node_id, Vect::random(-100.0, 100.0, false));
+        positions.insert(*node_id, Vect::random(0., 800.0, false));
     }
     positions
 }
@@ -115,7 +114,8 @@ fn calculate_repel_forces<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     }
     repel_forces
 }
-
+#[cfg(test)]
+use crate::utils::create_random_graph;
 #[test]
 pub fn x() {
     let g: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(50, 100, 1, 10, 0, 1);

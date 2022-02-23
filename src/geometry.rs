@@ -7,8 +7,8 @@ pub type Scalar = f64;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Vect {
-    x: Scalar,
-    y: Scalar,
+    pub(crate) x: Scalar,
+    pub(crate) y: Scalar,
     z: Scalar,
 }
 impl Vect {
