@@ -8,7 +8,7 @@ use std::hash::Hash;
 
 const REPEL_CONST: Scalar = 2.0;
 const SPRING_CONST: Scalar = 1.0;
-const SPRING_LENGTH: Scalar = 1.0;
+const SPRING_LENGTH: Scalar = 2.0;
 const DELTA_T: Scalar = 0.99;
 
 pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(

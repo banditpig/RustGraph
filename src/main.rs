@@ -17,7 +17,7 @@ mod algorithms;
 mod geometry;
 mod graph;
 mod utils;
-const SCALE: f64 = 0.006;
+const SCALE: f64 = 0.015;
 const OFFSET_X: f64 = 400.0;
 const OFFSET_Y: f64 = 400.0;
 const OFFSET_VEC: Vect = Vect {
@@ -135,7 +135,7 @@ fn test_graph() -> Graph<i32, i32, i32> {
 
 fn main() {
     //test_graph(); //
-    let graph: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 50, 1, 10, 0, 1);
+    let graph: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(20, 50, 1, 10, 0, 1);
     let p: HashMap<i32, Vect> = algorithms::layout(&graph);
     let app = GraphDisplay {
         g: graph,
