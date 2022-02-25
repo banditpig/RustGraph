@@ -6,10 +6,10 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-const REPEL_CONST: Scalar = 1.1;
-const SPRING_CONST: Scalar = 2.0;
-const SPRING_LENGTH: Scalar = 0.4;
-const DELTA_T: Scalar = 0.05;
+const REPEL_CONST: Scalar = 2.0;
+const SPRING_CONST: Scalar = 1.0;
+const SPRING_LENGTH: Scalar = 1.0;
+const DELTA_T: Scalar = 0.99;
 
 pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     g: &Graph<T, E, ID>,
@@ -17,7 +17,7 @@ pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     let mut positions = create_initial_positions(g);
     println!("{:?}", positions);
 
-    for _i in 1..800 {
+    for _i in 1..500 {
         let repel_forces = calculate_repel_forces(g, &mut positions);
         let spring_forces = calculate_spring_forces(g, &mut positions);
         let resultant_forces = calculate_resultant_forces(&repel_forces, &spring_forces);

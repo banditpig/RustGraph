@@ -9,7 +9,7 @@ pub type Scalar = f64;
 pub struct Vect {
     pub(crate) x: Scalar,
     pub(crate) y: Scalar,
-    z: Scalar,
+    pub(crate) z: Scalar,
 }
 impl Vect {
     pub fn random(min: f64, max: f64, use_z: bool) -> Vect {

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::geometry::Vect;
+use crate::geometry::{Scalar, Vect};
 use crate::graph::Graph;
 use crate::utils::create_random_graph;
 use crate::Shape::LineSegment;
@@ -17,19 +17,27 @@ mod algorithms;
 mod geometry;
 mod graph;
 mod utils;
-
+const SCALE: f64 = 0.006;
+const OFFSET_X: f64 = 400.0;
+const OFFSET_Y: f64 = 400.0;
+const OFFSET_VEC: Vect = Vect {
+    x: OFFSET_X,
+    y: OFFSET_Y,
+    z: 0.0,
+};
 struct GraphDisplay<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq> {
     pub g: Graph<T, E, ID>,
+    pub points_to_display: HashMap<ID, Vect>,
 }
 
 impl<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq> GraphDisplay<T, E, ID> {
-    fn layout(&self) -> HashMap<ID, Vect> {
-        algorithms::layout(&self.g)
-    }
-    fn connections(&self, points: HashMap<ID, Vect>) -> Vec<(Vect, Vect)> {
+    fn connections(&self, points: &HashMap<ID, Vect>) -> Vec<(Vect, Vect)> {
         algorithms::connections(&points, &self.g)
     }
-    fn convert_to_line(&self, (s, e): &(Vect, Vect)) -> Shape {
+    fn convert_to_line(&self, (s1, e1): &(Vect, Vect)) -> Shape {
+        let s = s1.scalar_mul(SCALE) + OFFSET_VEC;
+        let e = e1.scalar_mul(SCALE) + OFFSET_VEC;
+
         LineSegment {
             points: [
                 Pos2::new(s.x as f32, s.y as f32),
@@ -41,7 +49,8 @@ impl<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq> GraphDisplay<T, E, ID> {
             },
         }
     }
-    fn convert_vect_to_circle(v: &Vect) -> Shape {
+    fn convert_vect_to_circle(v1: &Vect) -> Shape {
+        let v = v1.scalar_mul(SCALE) + OFFSET_VEC;
         let c = Shape::Circle(CircleShape {
             center: Pos2::new(v.x as f32, v.y as f32),
             radius: 5.0,
@@ -61,12 +70,12 @@ impl<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq> App for GraphDisplay<T, E
             //     fill: Color32::WHITE,
             //     stroke: Default::default(),
             // });
-            let vecs = self.layout();
-            for vec in vecs.values() {
+            // let vecs = self.layout();
+            for vec in self.points_to_display.values() {
                 let c = GraphDisplay::<T, E, ID>::convert_vect_to_circle(&vec);
                 ui.painter().add(c);
             }
-            for l in self.connections(vecs) {
+            for l in self.connections(&self.points_to_display) {
                 ui.painter().add(self.convert_to_line(&l));
             }
         });
@@ -125,9 +134,13 @@ fn test_graph() -> Graph<i32, i32, i32> {
 }
 
 fn main() {
-    let graph: Graph<i32, i32, i32> = test_graph(); //create_random_graph::<i32, i32, i32>(10, 31, 1, 10, 0, 1);
-
-    let app = GraphDisplay { g: graph };
+    //test_graph(); //
+    let graph: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(10, 50, 1, 10, 0, 1);
+    let p: HashMap<i32, Vect> = algorithms::layout(&graph);
+    let app = GraphDisplay {
+        g: graph,
+        points_to_display: p,
+    };
     let win_option = NativeOptions::default();
     run_native(Box::new(app), win_option);
 }
