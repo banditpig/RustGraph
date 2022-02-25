@@ -6,10 +6,10 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-const REPEL_CONST: Scalar = 2.0;
-const SPRING_CONST: Scalar = 1.0;
-const SPRING_LENGTH: Scalar = 5.0;
-const DELTA_T: Scalar = 0.1;
+const REPEL_CONST: Scalar = 1.1;
+const SPRING_CONST: Scalar = 2.0;
+const SPRING_LENGTH: Scalar = 0.4;
+const DELTA_T: Scalar = 0.05;
 
 pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     g: &Graph<T, E, ID>,
@@ -17,14 +17,30 @@ pub fn layout<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     let mut positions = create_initial_positions(g);
     println!("{:?}", positions);
 
-    for _i in 1..100 {
+    for _i in 1..800 {
         let repel_forces = calculate_repel_forces(g, &mut positions);
         let spring_forces = calculate_spring_forces(g, &mut positions);
-        let resultant_forces = calculate_resultant_forces(repel_forces, spring_forces);
-        update_positions(&mut positions, resultant_forces);
+        let resultant_forces = calculate_resultant_forces(&repel_forces, &spring_forces);
+        positions = update_positions(positions, resultant_forces);
     }
     println!("=> {:?}", positions);
     positions
+}
+pub fn connections<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
+    positions: &HashMap<ID, Vect>,
+    g: &Graph<T, E, ID>,
+) -> Vec<(Vect, Vect)> {
+    //returns pairs of locations
+    let mut cons: Vec<(Vect, Vect)> = Vec::new();
+    for node_id in g.nodes.keys() {
+        //for each neighbors
+        let origin = positions.get(node_id).unwrap();
+        for neigh_id in g.neighbors(*node_id).unwrap() {
+            let dest = positions.get(&neigh_id).unwrap();
+            cons.push((*origin, *dest));
+        }
+    }
+    cons
 }
 fn repelling_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
     //applies to node u and ALL other nodes
@@ -37,8 +53,9 @@ fn spring_force(pos_u: &Vect, pos_v: &Vect) -> Vect {
     //applies to node u and all its immediate neighbours.
     let unit_vu = (*pos_v - *pos_u).as_unit_vector();
     let euc_dist = pos_u.euclid_distance(pos_v);
-    let x = SPRING_CONST * (euc_dist.powf(2.0) / SPRING_LENGTH).ln();
-    unit_vu.scalar_mul(x)
+
+    let x = (euc_dist / SPRING_LENGTH).ln();
+    unit_vu.scalar_mul(SPRING_CONST * x)
 }
 fn create_initial_positions<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     g: &Graph<T, E, ID>,
@@ -46,13 +63,13 @@ fn create_initial_positions<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
     let mut positions: HashMap<ID, Vect> = HashMap::new();
     for node_id in g.nodes.keys() {
         //setup with initial vect.
-        positions.insert(*node_id, Vect::random(0., 800.0, false));
+        positions.insert(*node_id, Vect::random(300., 301., false));
     }
     positions
 }
 
 fn update_positions<ID: Debug + Copy + Ord + Clone + Hash + Eq>(
-    positions: &mut HashMap<ID, Vect>,
+    positions: HashMap<ID, Vect>,
     resultant_forces: HashMap<ID, Vect>,
 ) -> HashMap<ID, Vect> {
     let mut new_positions: HashMap<ID, Vect> = HashMap::new();
@@ -66,8 +83,8 @@ fn update_positions<ID: Debug + Copy + Ord + Clone + Hash + Eq>(
 }
 
 fn calculate_resultant_forces<ID: Debug + Copy + Ord + Clone + Hash + Eq>(
-    repel_forces: HashMap<ID, Vect>,
-    spring_forces: HashMap<ID, Vect>,
+    repel_forces: &HashMap<ID, Vect>,
+    spring_forces: &HashMap<ID, Vect>,
 ) -> HashMap<ID, Vect> {
     let mut resultant_forces: HashMap<ID, Vect> = HashMap::new();
     for u in repel_forces.keys() {
@@ -118,6 +135,6 @@ fn calculate_repel_forces<T, E, ID: Debug + Copy + Ord + Clone + Hash + Eq>(
 use crate::utils::create_random_graph;
 #[test]
 pub fn x() {
-    let g: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(50, 100, 1, 10, 0, 1);
+    let g: Graph<i32, i32, i32> = create_random_graph::<i32, i32, i32>(500, 1000, 1, 10, 0, 1);
     println!("{:?}", layout(&g));
 }
